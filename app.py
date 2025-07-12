@@ -12,7 +12,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Секретний ключ для JWT токенів. В продакшені має бути складним і зберігатися в змінних середовища!
-app.config['SECRET_KEY'] = 'your_super_secret_and_unique_key_here_12345'
+app.config['SECRET_KEY'] = 'njgcfqnnjhec25njgcfqncnth,fqcnth25'
 
 # --- In-memory "база даних" ---
 # У реальному додатку тут була б база даних (SQLAlchemy, MongoDB тощо)
