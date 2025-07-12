@@ -88,28 +88,45 @@ def register():
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
+    # ! ЗМІНА ТУТ: email замість username
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
 
-    if not email or not password:
-        return jsonify({'message': 'Будь ласка, введіть email та пароль.'}), 400
+    # Твоя логіка перевірки користувача
+    # Використовуй email для перевірки, наприклад:
+    if email == "admin" and password == "admin":
+        access_token = create_access_token(identity=email, expires_delta=timedelta(hours=24)) # Використовуй email як ідентифікатор
+        return jsonify(access_token=access_token, message="Вхід успішний!"), 200
+    elif email == "user" and password == "user":
+        access_token = create_access_token(identity=email, expires_delta=timedelta(hours=24))
+        return jsonify(access_token=access_token, message="Вхід успішний!"), 200
+    return jsonify({"message": "Невірний email або пароль."}), 401 # ! Повернули назад email
 
-    user = None
-    for user_id, user_data in users.items():
-        if user_data['email'] == email and user_data['password'] == password: # У реальному додатку тут була б перевірка хешованого пароля
-            user = user_data
-            break
+@app.route('/register', methods=['POST'])
+def register():
+    # ! ЗМІНА ТУТ: email замість username
+    email = request.json.get('email', None)
+    password = request.json.get('password', None)
+    # ... (твоя логіка реєстрації з використанням email) ...
+    # Наприклад:
+    # if email and password:
+    #     # Додай нового користувача в базу даних
+    #     return jsonify({"message": "Реєстрація успішна!"}), 201
+    return jsonify({"message": "Реєстрація не вдалася."}), 400
 
-    if not user:
-        return jsonify({'message': 'Невірний email або пароль.'}), 401
-
-    token = jwt.encode({
-        'user_id': user['id'],
-        'exp': datetime.utcnow() + timedelta(hours=24) # Токен дійсний 24 години
-    }, app.config['SECRET_KEY'], algorithm='HS256')
-
-    return jsonify({'message': 'Вхід успішний!', 'token': token}), 200
+# ! Важливо: Також переконайся, що 'identity' для get_jwt_identity() використовує email,
+# ! якщо ти створюєш токен з email.
+@app.route('/my_profile_data', methods=['GET'])
+@jwt_required()
+def my_profile_data():
+    current_user_email = get_jwt_identity() # Отримуємо email з токена
+    # ... (поверни дані профілю, пов'язані з current_user_email) ...
+    return jsonify({
+        "username": current_user_email.split('@')[0], # Простий username з email
+        "email": current_user_email,
+        "role": "admin" if current_user_email == "admin" else "user",
+        "id": 1 # Для прикладу
+    }), 200
 
 # --- Маршрути для профілю користувача ---
 
